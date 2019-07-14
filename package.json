@@ -8,12 +8,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/arnolio/moviedb.git"
+    "url": "git+ssh://git@github.com/arnolio/movielib.git"
   },
   "author": "Jerry Arne <jerry.arne@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/arnolio/moviedb/issues"
+    "url": "https://github.com/arnolio/movielib/issues"
   },
-  "homepage": "https://github.com/arnolio/moviedb#readme"
+  "homepage": "https://github.com/arnolio/movielib#readme"
 }
