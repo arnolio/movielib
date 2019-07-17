@@ -1,0 +1,11 @@
+{
+  "lambda": {
+    "role": "movie-lib-lambda",
+    "name": "movielib",
+    "region": "us-east-1",
+    "sharedRole": true
+  },
+  "api": {
+    "id": "e7qlgwx3ga"
+  }
+}
