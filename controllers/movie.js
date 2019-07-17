@@ -1,45 +1,54 @@
+Store = require('yayson')().Store;
+store = new Store();
+
 module.exports = (app, db, presenter) => {
-    app.get( "/movie", (req, res) =>
-        db.movie.findAll().then( (result) => {
-            res.json(presenter.render(result));
-        } )
+    app.get( "/movie", (req, res, next) =>
+            db.movie.findAll().then((result) => {
+                res.json(presenter.render(result));
+            }).catch((err) => next(err))
     );
 
-    app.get( "/movie/:id", (req, res) =>
-        db.movie.findByPk(req.params.id).then( (result) => res.json(presenter.render(result)))
+    app.get( "/movie/:id", (req, res, next) =>
+        db.movie.findByPk(req.params.id).then(
+            (result) => {
+                if (!result) {
+                    res.status(404)
+                        .send('Not found')
+                }
+                res.json(presenter.render(result))
+            }
+        ).catch((err) => next(err))
     );
 
-    app.post("/movie", (req, res) => {
-            console.log(req.body.data);
-            db.movie.create({
-                title: req.body.data.attributes.title,
-                format: req.body.data.attributes.format,
-                length: req.body.data.attributes.length,
-                releaseYear: req.body.data.attributes.releaseYear,
-                rating: req.body.data.attributes.rating
-            }).then((result) => res.json(presenter.render(result)))
+    app.post("/movie", (req, res, next) => {
+            let movie = store.sync(req.body);
+            db.movie.create(movie).then(
+                (result) => res.json(presenter.render(result))
+            ).catch((err) => next(err))
         }
     );
 
-    app.put( "/movie/:id", (req, res) =>
-        db.movie.update({
-                title: req.body.data.attributes.title,
-                format: req.body.data.attributes.format,
-                length: req.body.data.attributes.length,
-                releaseYear: req.body.data.attributes.releaseYear,
-                rating: req.body.data.attributes.rating
-            }, {
+    app.put( "/movie/:id", (req, res, next) => {
+            let movie = store.sync(req.body);
+            db.movie.update(movie, {
                 where: {
                     id: req.params.id
                 }
-            }).then( (result) => res.json(presenter.render(result)) )
+            }).then(
+                (result) => res.json(presenter.render(result))
+            ).catch((err) => next(err))
+        }
     );
 
-    app.delete( "/movie/:id", (req, res) =>
+    app.delete( "/movie/:id", (req, res, next) =>
         db.movie.destroy({
             where: {
                 id: req.params.id
             }
-        }).then( (result) => res.json(presenter.render(result)) )
+        }).then(
+            (result) => res.json(presenter.render(result))
+        ).catch((err) => {
+            next(err)
+        })
     );
 };
