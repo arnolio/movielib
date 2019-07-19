@@ -1,45 +1,43 @@
+const imdb = new (require('omdbapi'))(process.env.IMDB_API_KEY);
 Store = require('yayson')().Store;
 store = new Store();
 
 module.exports = (app, db, presenter) => {
-    app.get( "/movies", (req, res, next) => {
+    app.get( "/movie", (req, res, next) => {
         let condition = !req.query.sort ? {} : { order: getSortArray(req.query.sort) } ;
         db.movie.findAll(condition).then((result) => {
             res.json(presenter.render(result));
-        }).catch((err) => next(err))
-
+        }).catch(err => next(err))
     });
 
-    app.get( "/movies/:id", getMovie, (req, res) =>
+    app.get( "/movie/:id", getMovie, (req, res) =>
         res.json(presenter.render(req.movie))
     );
 
-    app.post("/movies", (req, res, next) => {
+    app.post("/movie", searchIMDB,(req, res, next) => {
             let payload = getPayload(req.body);
             db.movie.create(payload).then(
                 (result) => res.json(presenter.render(result))
-            ).catch((err) => next(err))
+            ).catch(err => next(err))
         }
     );
 
-    app.put( "/movies/:id", getMovie, (req, res, next) => {
+    app.put( "/movie/:id", getMovie, (req, res, next) => {
         let payload = getPayload(req.body);
         req.movie.update(payload)
             .then((self) => res.json(presenter.render(self)))
-            .catch((err) => next(err));
+            .catch(err => next(err));
         }
     );
 
-    app.delete( "/movies/:id", (req, res, next) =>
+    app.delete( "/movie/:id", (req, res, next) =>
         db.movie.destroy({
             where: {
                 id: req.params.id
             }
         }).then(
             () => res.status(204)
-        ).catch((err) => {
-            next(err)
-        })
+        ).catch(err => next(err))
     );
 
     app.use(function(error, req, res, next) {
@@ -70,6 +68,21 @@ module.exports = (app, db, presenter) => {
             req.movie = result;
             next();
         })
+    }
+
+    function searchIMDB(req, res, next) {
+        if (!req.body.data.attributes.imdbId) {
+            next();
+        }
+
+        imdb.get({
+            id: req.body.data.attributes.imdbId,
+        }).then(res => {
+            req.body.data.attributes.title = res.title;
+            req.body.data.attributes.length = parseInt(res.runtime) || req.body.data.attributes.length;
+            req.body.data.attributes.releaseYear = res.year;
+            next();
+        }).catch((err => next(err)));
     }
 
     function getPayload(body) {

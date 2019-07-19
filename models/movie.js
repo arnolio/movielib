@@ -40,6 +40,17 @@ module.exports = (sequelize, DataTypes) => {
                     max: 5,
                     min: 1
                 }
+            },
+            imdbId: {
+                type: DataTypes.STRING,
+                allowNull: true,
+                validate: {
+                    startWithTT(value) {
+                        if (value.charAt(0) !== 't' || value.charAt(1) !== 't') {
+                            throw new Error(`Must start with 'tt' not ${value.charAt(0)} ${value.charAt(1)}!`);
+                        }
+                    }
+                }
             }
         },
         {
